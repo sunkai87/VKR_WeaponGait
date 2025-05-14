@@ -1,0 +1,6 @@
+pyproject.toml
+src/weapon_gait.egg-info/PKG-INFO
+src/weapon_gait.egg-info/SOURCES.txt
+src/weapon_gait.egg-info/dependency_links.txt
+src/weapon_gait.egg-info/requires.txt
+src/weapon_gait.egg-info/top_level.txt

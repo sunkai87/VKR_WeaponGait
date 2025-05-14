@@ -1,0 +1,9 @@
+[project]
+name = "weapon-gait"
+version = "0.1.0"
+description = "Concealed weapon gait detection toolkit"
+authors = [{name = "Ivan Kashin"}]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["build"]

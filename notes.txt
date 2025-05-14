@@ -1,0 +1,118 @@
+Полезные ссылки:
+Основной канал для сбора датасета
+https://www.youtube.com/@ActiveSelfProtection/videos
+
+
+Распознавание оружия на камерах видеонаблюдения
+https://github.com/Deepknowledge-US/US-Real-time-gun-detection-in-CCTV-An-open-problem-dataset
+
+Датасет с картинками оружия
+https://www.kaggle.com/datasets/abhishek4273/gun-detection-dataset
+
+
+
+Все о походке -- Сборник: https://github.com/BNU-IVC/Awesome-Gait-Recognition?tab=readme-ov-file#tutorial
+Ещё сборник: https://github.com/wangzheallen/awesome-human-pose-estimation
+Самый большой: https://github.com/jbhuang0604/awesome-computer-vision?tab=readme-ov-file
+
+Похожий код для нас:
+https://github.com/yysijie/st-gcn
+
+Мне понравилось это классификатор:
+https://github.com/open-mmlab/mmaction2/blob/main/configs/skeleton/posec3d/README.md
+
+
+
+3d res ResNets
+https://github.com/kenshohara/3D-ResNets-PyTorch
+
+gait part
+https://github.com/ShiqiYu/OpenGait -- Здесь собраны все открытые коды по распознаванию походки
+https://github.com/ShiqiYu/OpenGait/releases/tag/v2.0
+
+
+https://github.com/ShiqiYu/OpenGait
+
+openpose
+https://github.com/CMU-Perceptual-Computing-Lab/openpose
+https://github.com/CMU-Perceptual-Computing-Lab/openpose_train
+https://github.com/Hzzone/pytorch-openpose
+
+hrnet
+https://github.com/HRNet/HRNet-Human-Pose-Estimation
+
+
+
+
+
+
+gaitgraph: (it is good)
+https://github.com/tteepe/GaitGraph
+https://github.com/tteepe/GaitGraph2
+
+gpgait
+https://github.com/BNU-IVC/FastPoseGait
+
+https://github.com/YuliangXiu/MobilePose
+
+
+gaitset
+https://github.com/AbnerHqC/GaitSet - code
+https://arxiv.org/abs/1811.06186 - paper
+
+Saba-gul: cnn
+https://github.com/Saba-Gul/Gait-Analysis-Using-3D-CNN
+
+СNN
+Gul, S.; Malik, M.I.; Khan, G.M.; Shafait, F. Multi-view gait recognition system using spatio-temporal features and deep learning 2021
+https://github.com/Saba-Gul/Gait-Analysis-Using-3D-CNN
+
+CNN
+Huang, Z.; Xue, D.; Shen, X.; Tian, X.; Li, H.; Huang, J.; Hua, X.S. 3d local convolutional neural networks for gait recognition
+https://openaccess.thecvf.com/content/ICCV2021/html/Huang_3D_Local_Convolutional_Neural_Networks_for_Gait_Recognition_ICCV_2021_paper.html
+https://github.com/aliyun/3D-Local-CNN-for-Gait-Recognition
+
+
+Linzhi Huang, Yulong Li, Hongbo Tian
+Semi-Supervised 2D Human Pose Estimation Driven by Position Inconsistency Pseudo Label Correction Module
+https://github.com/hlz0606/SSPCM/tree/main
+
+
+DATASETS:
+
+
+Criminal: https://www.kaggle.com/datasets/odins0n/ucf-crime-dataset/data
+UCF - video: https://www.kaggle.com/datasets/minhajuddinmeraj/anomalydetectiondatasetucf/data
+(Оффициальная ссылка: https://www.dropbox.com/scl/fo/2aczdnx37hxvcfdo4rq4q/AOjRokSTaiKxXmgUyqdcI6k?rlkey=5bg7mxxbq46t7aujfch46dlvz&e=1&st=sq7h5d0a&dl=0)
+Полная официальная ссылка: https://www.crcv.ucf.edu/research/real-world-anomaly-detection-in-surveillance-videos/
+
+Код: https://github.com/WaqasSultani/AnomalyDetectionCVPR2018
+https://huggingface.co/OPear/videomae-large-finetuned-UCF-Crime
+
+
+RWF-2000: https://www.kaggle.com/datasets/vulamnguyen/rwf2000/data
+https://github.com/mchengny/RWF2000-Video-Database-for-Violence-Detection
+https://www.kaggle.com/code/mennatallah77/cctv-classification
+
+HR-Crime: https://dataverse.nl/dataset.xhtml?persistentId=doi:10.34894/IRRDJE
+
+https://paperswithcode.com/datasets?mod=videos
+
+GREW: https://github.com/GREW-Benchmark/GREW-Benchmark
+zhengzhu@ieee.org для почты
+
+casia-b: https://www.kaggle.com/datasets/trnquanghuyn/casia-b
+	 https://kylezheng.org/research-projects/gait-recognition/
+
+	Или:
+https://github.com/tteepe/GaitGraph/releases/tag/v0.1
+
+MPII Human gait
+https://www.mpi-inf.mpg.de/departments/computer-vision-and-machine-learning/software-and-datasets/mpii-human-pose-dataset/download
+
+
+
+
+OU-ISIR, MVLP - Хороши, но их нужно запрашивать по адресу
+
+"GaitDB_admin@am.sanken.osaka-u.ac.jp"
