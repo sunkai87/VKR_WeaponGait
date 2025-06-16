@@ -38,13 +38,32 @@ def cli():
 # extract
 # ---------------------------------------------------------------------------
 
-@cli.command(help="Extract poses and cache as .npy")
-@click.option("--video", required=True, type=click.Path(exists=True, dir_okay=False))
-@click.option("--backend", default="mediapipe", show_default=True, help="Pose backend")
-def extract(video: str, backend: str):
-    extractor = get_pose_extractor(backend)
-    arr = extractor.extract(Path(video))
-    click.echo(f"{extractor.name}: extracted pose seq of shape {arr.shape}")
+# @cli.command(help="Extract poses and cache as .npy")
+# @click.option("--video", required=True, type=click.Path(exists=True, dir_okay=False))
+# @click.option("--backend", default="mediapipe", show_default=True, help="Pose backend")
+# def extract(video: str, backend: str):
+#     extractor = get_pose_extractor(backend)
+#     arr = extractor.extract(Path(video))
+#     click.echo(f"{extractor.name}: extracted pose seq of shape {arr.shape}")
+
+
+@cli.command(help="Extract pose sequence(s) and store in cache")
+@click.option("--video",  required=True, type=click.Path(exists=True, dir_okay=False))
+@click.option("--backend", default="mediapipe", show_default=True)
+def extract(video, backend):
+    from weapon_gait.pose import get_extractor
+    extractor = get_extractor(backend)
+    out = extractor.extract(Path(video))
+    # out can be ndarray OR list[Path]
+    if isinstance(out, list):
+        click.echo(f"{extractor.name}: saved {len(out)} tracks:")
+        for p in out:
+            click.echo(f"  • {p.name}")
+    else:
+        click.echo(f"{extractor.name}: extracted pose seq of shape {out.shape}")
+
+
+
 
 # ---------------------------------------------------------------------------
 # train
@@ -66,11 +85,24 @@ def train(manifest: str, pose_backend: str, gait_backend: str, model: str, test_
 # ---------------------------------------------------------------------------
 
 
-@cli.command(help="Predict weapon/no_weapon on a single video clip")
-@click.option("--video", required=True, type=click.Path(exists=True, dir_okay=False))
-@click.option("--model", required=True, type=click.Path(exists=True, dir_okay=False))
-def predict(video: str, model: str):
-    baseline.predict(Path(video), Path(model))
+# @cli.command(help="Predict weapon/no_weapon on a single video clip")
+# @click.option("--video", required=True, type=click.Path(exists=True, dir_okay=False))
+# @click.option("--model", required=True, type=click.Path(exists=True, dir_okay=False))
+# def predict(video: str, model: str):
+#     baseline.predict(Path(video), Path(model))
+
+
+@cli.command()
+@click.option("--video", required=True, type=click.Path(exists=True))
+@click.option("--model", required=True, type=click.Path(exists=True))
+@click.option("--out-vis", default=None, type=click.Path())
+def predict(video, model, out_vis):
+    from weapon_gait.models.baseline import predict
+    res = predict(Path(video), Path(model),
+                  save_vis=(Path(out_vis) if out_vis else None))
+    for r in res:
+        click.echo(f"pid {r['pid']:>2}: {r['pred']}  "
+                   f"prob_weapon={r['prob']:.3f}" if r['prob'] is not None else "")
 
 # ---------------------------------------------------------------------------
 

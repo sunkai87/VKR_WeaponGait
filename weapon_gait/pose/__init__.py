@@ -24,10 +24,18 @@ from importlib import import_module
 from pathlib import Path
 from typing import Protocol
 
+import numpy as np
+
+
 class PoseExtractor(Protocol):
     def extract(self, video_path: Path): ...
     @property
     def name(self) -> str: ...
+
+class NpyLoader:
+    name = "npy"
+    def extract(self, path: Path):
+        return np.load(path)
 
 def _lazy(name: str, module: str, cls: str) -> PoseExtractor:
     return getattr(import_module(module, package=__name__), cls)()
@@ -47,9 +55,18 @@ def get_extractor(name: str) -> PoseExtractor:
             return _lazy(name, ".rtmpose", "RTMPoseExtractor")
         case "pifpaf":
             return _lazy(name, ".pifpaf_pose", "PifPafPose")
+        case "crop_mp":
+            return _lazy(name, ".crop_mp_multi","CropMultiPoseExtractor")
+        case "crop_yolo":
+            return _lazy(name, ".yolo_multipose", "MultiPersonPoseExtractor")
+        case "npy":
+            return _lazy(name,".", cls="NpyLoader")
         case _:
             raise ValueError(f"Unknown pose backend: {name}")
+        
 
+# if name == "npy":
+#     return NpyLoader()
 __all__ = ["get_extractor", "PoseExtractor"]
 
 

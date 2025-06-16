@@ -205,6 +205,8 @@ def get_extractor(name: str) -> BaseFeatureExtractor:
             return StatsMixFeatureExtractor()
         case "statsplus":
             return StatsPlusFeatureExtractor()
+        case "inst_stats":
+            return InstantStatsExtractor()
         case _:
             raise ValueError(
                 f"Unknown gait feature extractor '{name}'. Available: stats, cycle_dct, seq_tensor"
@@ -340,6 +342,96 @@ class StatsPlusFeatureExtractor(BaseFeatureExtractor):
         # indicator legs missing
         out["legs_missing"] = 1.0 if out.get("legs_visible", 0.0) < 0.2 else 0.0
         return out
+    
+class InstantStatsExtractor:
+    name = "inst_stats"
+    FEAT_DIM = 9
+
+    SHO_L=11
+    SHO_R=12
+    HIP_L=23
+    HIP_R=24
+    ELB_L=13
+    ELB_R=14
+    WRI_L=15
+    WRI_R=16
+    KNE_L=25
+    KNE_R=26
+    ANK_L=27
+    ANK_R=28
+    _IDX = {
+        "SHO_L":11, "SHO_R":12,
+        "HIP_L":23, "HIP_R":24,
+        "ELB_L":13, "ELB_R":14, "WRI_L":15, "WRI_R":16,
+        "KNE_L":25, "KNE_R":26, "ANK_L":27, "ANK_R":28,
+    }
+    
+    
+
+    # ──────────────────────────────────────────────────────────
+    def extract(self, pose_seq: np.ndarray, fps: int = 30) -> dict:
+        """Return global validity only (for compatibility)."""
+        return {"valid": self._valid_mask(pose_seq).mean() > 0.7}
+
+    # ──────────────────────────────────────────────────────────
+    def extract_seq(self, pose_seq: np.ndarray, fps: int = 30) -> np.ndarray:
+
+        idx = self._IDX
+        """Per‑frame features (T×F)."""
+        T = pose_seq.shape[0]
+        out = np.full((T, self.FEAT_DIM), np.nan, dtype=np.float32)
+
+        # center hip (x,y)
+        hip_xy = np.nanmean(pose_seq[:, [idx["HIP_L"], idx["HIP_R"]], :2], axis=1)  # T×2
+        hip_vis = ~np.isnan(hip_xy).any(1)
+
+        # hip velocity magnitude
+        hip_vel = np.sqrt(((np.diff(hip_xy, axis=0))**2).sum(1))
+        hip_vel = np.concatenate([[0], hip_vel])
+
+        # ankle velocity (mean)
+        ankle_xy = pose_seq[:, [idx["ANK_L"], idx["ANK_R"]], :2]                # T×2×2
+        ankle_vel = np.sqrt(((np.diff(ankle_xy, axis=0))**2).sum(2)).mean(1)
+        ankle_vel = np.concatenate([[0], ankle_vel])
+
+        # knee angles
+        def _angle(a,b,c):
+            ba = a-b; bc = c-b
+            cos = np.einsum("ij,ij->i", ba, bc) / (
+                   np.linalg.norm(ba,axis=1)*np.linalg.norm(bc,axis=1)+1e-6)
+            return np.degrees(np.arccos(np.clip(cos, -1,1)))
+        knee_L = _angle(pose_seq[:, idx["HIP_L"],:3], pose_seq[:, idx["KNE_L"],:3], pose_seq[:, idx["ANK_L"],:3])
+        knee_R = _angle(pose_seq[:, idx["HIP_R"],:3], pose_seq[:, idx["KNE_R"],:3], pose_seq[:, idx["ANK_R"],:3])
+
+        # leg visibility flag
+        leg_vis = ((pose_seq[:, idx["ANK_L"],3]>0.5) & (pose_seq[:, idx["ANK_R"],3]>0.5)).astype(float)
+
+        # stride phase via cumulative hip velocity Y
+        hip_dy = np.diff(hip_xy[:,1], prepend=hip_xy[0,1])
+        phase = np.cumsum(hip_dy) / (np.nanstd(hip_dy)+1e-6)
+        phase = (phase - phase.min()) / (phase.max()-phase.min()+1e-6) * 2*np.pi
+        phase_sin = np.sin(phase); phase_cos = np.cos(phase)
+
+        # torso tilt angle (shoulder line)
+        sho = pose_seq[:, [idx["SHO_L"], idx["SHO_R"]], :2]
+        tilt = np.degrees(np.arctan2(sho[:,0,1]-sho[:,1,1], sho[:,0,0]-sho[:,1,0]))
+
+        out[:,0] = hip_xy[:,1]
+        out[:,1] = hip_vel
+        out[:,2] = ankle_vel
+        out[:,3] = knee_L
+        out[:,4] = knee_R
+        out[:,5] = leg_vis
+        out[:,6] = phase_sin
+        out[:,7] = phase_cos
+        out[:,8] = tilt
+        out = np.nan_to_num(out, nan=0.0, posinf=0.0, neginf=0.0)
+        return out
+
+    # ──────────────────────────────────────────────────────────
+    @staticmethod
+    def _valid_mask(pose_seq):
+        return ~np.isnan(pose_seq[:,:,0])
 
 __all__: List[str] = [
     "BaseFeatureExtractor",
@@ -350,5 +442,7 @@ __all__: List[str] = [
     "StatsMixFeatureExtractor",
     "SeqTensorExtractor",
     "StatsPlusFeatureExtractor",
+    "InstantStatsExtractor",
     "get_extractor",
+    ""
 ]

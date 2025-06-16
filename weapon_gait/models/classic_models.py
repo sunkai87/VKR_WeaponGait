@@ -44,6 +44,10 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import StratifiedKFold, cross_val_predict
 from sklearn.metrics import classification_report
 
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+
 from weapon_gait.models.baseline import _cache_file, build_dataset
 
 from shutil import rmtree
@@ -56,18 +60,43 @@ warnings.filterwarnings("ignore", category=UserWarning)
 # Можно добавить параметр:  class_weight="balanced"
 def _make_model(model_key: str):
     if model_key == "rf":
-        clf = RandomForestClassifier(n_estimators=400, max_depth=None,n_jobs=-1)
+        # clf = RandomForestClassifier(n_estimators=400, max_depth=None,n_jobs=-1)
+        clf = RandomForestClassifier()
     elif model_key == "svm":
-        base = LinearSVC(C=1.0)
-        clf = CalibratedClassifierCV(base, cv=3)
+        base = LinearSVC()
+        # clf = CalibratedClassifierCV(base, cv=3)
+        clf = CalibratedClassifierCV(base)
     elif model_key == "nb":
         clf = GaussianNB()
+        
     elif model_key == "logreg":
-        clf = LogisticRegression(max_iter=300,solver="liblinear")
+        # clf = LogisticRegression(max_iter=300,solver="liblinear")
+        clf = LogisticRegression()
     elif model_key == "gb":
-        clf = HistGradientBoostingClassifier(max_depth=3, learning_rate=0.1)
+        # clf = HistGradientBoostingClassifier(max_depth=3, learning_rate=0.1)
+        clf = HistGradientBoostingClassifier()
     else:
         raise ValueError(f"Unknown model_key '{model_key}'")
+
+    # ————————————————————————————————————————————————
+    # Составляем шаги пайплайна
+    steps = []
+
+    # Модели, которым нужен импути-Nan → среднее по колонке
+    if model_key in {"rf", "svm", "nb", "logreg"}:
+        steps.append(("imputer", SimpleImputer(strategy="mean")))
+        steps.append(("scaler", StandardScaler()))     # линейным моделям полезен масштаб
+
+    # Очень странный параметр, он то позитивно влияет, то негативно влияет
+    elif model_key == "gb":
+        # HistGradientBoosting сам умеет NaN, масштаб не обязателен,
+        # но можно оставить scaler — на результат почти не влияет.
+        steps.append(("imputer", SimpleImputer(strategy="mean")))
+        steps.append(("scaler", StandardScaler()))
+
+
+    steps.append(("clf", clf))
+    return Pipeline(steps)
 
     return Pipeline([
         ("scaler", StandardScaler()),
@@ -76,14 +105,21 @@ def _make_model(model_key: str):
 
 # search‑space per model
 GRID_PARAMS: Dict[str, Dict[str, list]] = {
-    "rf":  {"clf__n_estimators": [400, 800],
+    "rf":  {"clf__n_estimators": [100, 200, 400],
              "clf__max_depth": [None, 10, 20],
-             "clf__min_samples_leaf": [2, 4]},
-    "svm": {"clf__base_estimator__C": [0.1, 1, 10]},
-    "nb":  {},
-    "logreg": {"clf__C": [0.1, 1, 10]},
-    "gb":  {"clf__learning_rate": [0.05, 0.1, 0.2],
-             "clf__max_depth": [2, 3, 4]},
+             "clf__min_samples_leaf": [1, 2, 4]},
+    # "svm": {"base__C": [1, 0.1, 10],
+    #         "base__loss":["hinge","squared_hinge"],
+    #         "base__penalty":["l1","l2"]},
+    "svm":{},
+    "nb":  {"clf__var_smoothing":[1e-9, 1e-10, 1e-8]},
+    "logreg": {"clf__C": [1, 0.1, 10],
+               "clf__penalty":["l1","l2"],
+               "clf__solver":["liblinear"],
+               "clf__max_iter":[100,200,400]},
+    "gb":  {"clf__learning_rate": [0.1, 0.05, 0.2],
+             "clf__max_depth": [None, 2, 4],
+             "clf__max_iter":[100,200,400]},
 }
 
 # ---------------------------------------------------------------------------
@@ -188,7 +224,7 @@ def train_model(
         "gait_backend": gait_backend,
         "feature_cols": list(X.columns),
     }, out_pth)
-    print("Saved →", out_pth)
+    print("Saved in", out_pth)
 
 def predict_video(video: Path, model_pth: Path):
     payload = joblib.load(model_pth)
